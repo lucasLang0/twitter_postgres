@@ -147,26 +147,26 @@ def insert_tweet(connection,tweet):
                 :location,
                 :description,
                 :withheld_in_countries)
-            ON CONFLICT DO NOTHING;
+            ON CONFLICT (id_users) DO NOTHING;
         ''')
         
         res=connection.execute(sql, {
             'id_users': tweet['user']['id'],
-            'created_at': tweet['user']['created_at'],
-            'updated_at': tweet['created_at'],
-            'screen_name':remove_nulls(tweet['user']['screen_name']),
-            'name':remove_nulls(tweet['user']['name']),
-            'location':remove_nulls(tweet['user']['location']),
+            'created_at':tweet.get('created_at', None),
+            'updated_at':tweet.get('updated_at', None),
             'id_urls':user_id_urls,
-            'description':remove_nulls(tweet['user']['description']),
-            'protected':tweet['user']['protected'],
-            'verified':tweet['user']['verified'],
-            'friends_count':tweet['user']['friends_count'],
-            'listed_count':tweet['user']['listed_count'],
-            'favourites_count':tweet['user']['favourites_count'],
-            'statuses_count':tweet['user']['statuses_count'],
-            'withheld_in_countries':tweet['user'].get('withheld_in_countries', None)
-        })
+            'friends_count':tweet.get('friends_count', None),
+            'listed_count':tweet.get('listed_count', None),
+            'favourites_count':tweet.get('favourites_count', None),
+            'statuses_count':tweet.get('statuses_count', None),
+            'protected':tweet.get('protected', None),
+            'verified':tweet.get('verified', None),
+            'screen_name':tweet.get('screen_name', None),
+            'name':tweet.get('name', None),
+            'location':tweet.get('location', None),
+            'description':tweet.get('description', None),
+            'withheld_in_countries':tweet.get('withheld_in_countries', None)
+            })
 
 
         ########################################
