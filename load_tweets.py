@@ -47,7 +47,7 @@ def get_id_urls(url, connection):
     This function cannot be tested with standard python testing tools because it interacts with the db.
     '''
     sql = sqlalchemy.sql.text('''
-    insert into urls 
+    insert into urls
         (url)
         values
         (:url)
@@ -62,7 +62,7 @@ def get_id_urls(url, connection):
     # we need to run a select statement to put the already existing id_urls into res[0]
     if res is None:
         sql = sqlalchemy.sql.text('''
-        select id_urls 
+        select id_urls
         from urls
         where
             url=:url
@@ -83,27 +83,26 @@ def insert_tweet(connection,tweet):
 
     NOTE:
     This function cannot be tested with standard python testing tools because it interacts with the db.
-    
+
     FIXME:
     This function is only partially implemented.
     You'll need to add appropriate SQL insert statements to get it to work.
     '''
 
-    # skip tweet if it's already inserted
-    sql=sqlalchemy.sql.text('''
-    SELECT id_tweets 
-    FROM tweets
-    WHERE id_tweets = :id_tweets
-    ''')
-    res = connection.execute(sql,{
-        'id_tweets':int(tweet['id']),
-        })
-    if res.first() is not None:
-        return
-
     # insert tweet within a transaction;
     # this ensures that a tweet does not get "partially" loaded
     with connection.begin() as trans:
+        # skip tweet if it's already inserted
+        sql=sqlalchemy.sql.text('''
+            SELECT id_tweets 
+            FROM tweets
+            WHERE id_tweets = :id_tweets;
+        ''')
+        res = connection.execute(sql,{
+            'id_tweets':tweet['id'],
+            })
+        if res.first() is not None:
+            return
 
         ########################################
         # insert into the users table
@@ -130,7 +129,7 @@ def insert_tweet(connection,tweet):
                 name,
                 location,
                 description,
-                withheld_in_countries) 
+                withheld_in_countries)
             VALUES (
                 :id_users,
                 :created_at,
@@ -149,7 +148,7 @@ def insert_tweet(connection,tweet):
                 :withheld_in_countries)
             ON CONFLICT (id_users) DO NOTHING;
         ''')
-        
+
         res=connection.execute(sql, {
             'id_users': tweet['user']['id'],
             'created_at':tweet.get('created_at', None),
@@ -241,29 +240,29 @@ def insert_tweet(connection,tweet):
 
         sql=sqlalchemy.sql.text('''
             INSERT INTO tweets
-            (id_tweets, 
+            (id_tweets,
             id_users,
-            created_at, 
-            in_reply_to_status_id, 
-            in_reply_to_user_id, 
-            quoted_status_id, 
-            retweet_count, 
-            favorite_count, 
-            quote_count, 
-            withheld_copyright, 
+            created_at,
+            in_reply_to_status_id,
+            in_reply_to_user_id,
+            quoted_status_id,
+            retweet_count,
+            favorite_count,
+            quote_count,
+            withheld_copyright,
             withheld_in_countries,
-            source, 
-            text, 
-            country_code, 
+            source,
+            text,
+            country_code,
             state_code,
-            lang, 
+            lang,
             place_name,
             geo)
             VALUES
-            (:id_tweets, 
-            :id_users, 
-            :created_at, 
-            :in_reply_to_status_id, 
+            (:id_tweets,
+            :id_users,
+            :created_at,
+            :in_reply_to_status_id,
             :in_reply_to_user_id,
             :quoted_status_id,
             :retweet_count,
@@ -272,10 +271,10 @@ def insert_tweet(connection,tweet):
             :withheld_copyright,
             :withheld_in_countries,
             :source,
-            :text, 
+            :text,
             :country_code,
             :state_code,
-            :lang, 
+            :lang,
             :place_name,
             :geo)
             ON CONFLICT DO NOTHING
@@ -378,8 +377,8 @@ def insert_tweet(connection,tweet):
         ########################################
 
         try:
-            hashtags = tweet['extended_tweet']['entities']['hashtags'] 
-            cashtags = tweet['extended_tweet']['entities']['symbols'] 
+            hashtags = tweet['extended_tweet']['entities']['hashtags']
+            cashtags = tweet['extended_tweet']['entities']['symbols']
         except KeyError:
             hashtags = tweet['entities']['hashtags']
             cashtags = tweet['entities']['symbols']
@@ -435,7 +434,7 @@ def insert_tweet(connection,tweet):
 ################################################################################
 
 if __name__ == '__main__':
-    
+
     # process command line args
     import argparse
     parser = argparse.ArgumentParser()
@@ -455,7 +454,7 @@ if __name__ == '__main__':
     # we reverse sort the filenames because this results in fewer updates to the users table,
     # which prevents excessive dead tuples and autovacuums
     for filename in sorted(args.inputs, reverse=True):
-        with zipfile.ZipFile(filename, 'r') as archive: 
+        with zipfile.ZipFile(filename, 'r') as archive:
             print(datetime.datetime.now(),filename)
             for subfilename in sorted(archive.namelist(), reverse=True):
                 with io.TextIOWrapper(archive.open(subfilename)) as f:
